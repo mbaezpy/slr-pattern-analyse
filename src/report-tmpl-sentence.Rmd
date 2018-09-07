@@ -1,0 +1,262 @@
+---
+title: "Qualitative analysis of exclusion patterns (sentences)"
+author: "Marcos Baez"
+date: "8/15/2018"
+output: 
+  html_document:
+        toc: true
+        toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+## Dataset
+
+```{r echo=FALSE, message=FALSE, results='hide'}
+file_include = commandArgs(TRUE)[1]
+source("./screening-sentence.R")
+```
+
+The analysis is based on the file **`r commandArgs(TRUE)[1]`**.
+
+
+A total of `r length(dj1$id)` judgments were collected from 
+`r length(unique(dj1$X_worker_id))` workers on  `r length(unique(dj1$X_unit_id))` papers 
+(`r length(unique(dj1$X_unit_id[dj1$X_golden == "TRUE"]))` of which were "golden"
+or labeled items). After removing non valid contributions, we ended up with `r length(djv$id)` valid judgements. 
+
+In the figure below we show the distribution of the number of judgements per 
+paper. 
+
+
+```{r message=FALSE, echo=FALSE, fig.height=4}
+p4
+```
+
+
+## Patterns
+A total of `r length(djv$id)` judgements with valid patterns were identified
+from the `r length(dj1$id)` collected. We considered invalid those patterns with no 
+match in the abstract. 
+
+```{r echo=FALSE, results='asis'}
+print(xtable::xtable(dji, caption = "Reasons for invalid cases"),
+type = "html", html.table.attributes ="style='border=0;padding=2'")
+```
+
+### Classifying patterns
+
+We then performed a qualitative content analysis on the valid patterns to 
+characterise to which parts of an abstract they refer to. We took as coding scheme
+the common parts of a typical abstract structure (see table below). Notice that
+we qualitative analised the patterns instead of taking the raw
+position of the matching pattern, as i) most abstracts were not structured, and 
+therefore ii) the structure can change according to the writing style of the authors 
+(e.g., some abstracts may start with the "Objective" while others with some general
+"Background" information).
+
+The coding scheme is listed below. To the list we added the category "Keyword" to indicate short patterns that not correspond to complete sentences. 
+
+| Part of the abstract | Example                                          |
+|----------------------|--------------------------------------------------|
+| Background           | *Social isolation in urban areas is a societal challenge. It affects people of all ages but particularly elderly who struggle to maintain social ties into later-life. Interventions in social isolation primarily focus on elderly in clinical care, overlooking the existence of older adults who live independently*|
+| Hypothesis           | *A novel security mechanism named as the traceable threshold attribute-based signcryption (TTABSC) can permits patients to be friends and make a proper tradeoff between privacy and traceability*|
+| Objective            | *This study is part of a design-based research project aimed at designing a learning intervention for enabling Costa Rican older people to use information and communication technologies for cognitive activity and social interaction*|
+| Proposal             | *we propose FamilyPal, an effective system for detecting family activities, which can help users establish good relationship with family members*|
+| Proposal details     | *Specifically, FamilyPal firstly uses smartphones built-in sensors, such as GPS, accelerometer, microphone, gyroscope, and Wi-Fi to obtain the motion and location of users, the surrounding voice, etc.*|
+| Methods              | *We use path analysis to test their relationships with attitude, perceived value and watching intention to understand the influential factors and channels that induce audiences to watch live-streaming events.*|
+| Results              | *The empirical results show that SNS use improves older people's life satisfaction by reducing their loneliness and improving their self-efficacy. Social support alleviates the negative effect of loneliness and enhances the positive effect of self-efficacy on life satisfaction*|
+| Keyword              | *83-item online survey*|
+
+
+In the chart below we show the count of unique patterns by category.
+
+```{r message=FALSE, echo=FALSE, fig.height=4}
+p3
+```
+
+
+### Content analysis 
+Looking deeper into the content of the patterns, we looked into the most popular 
+keywords in abstracts marked as included and excluded. To this end, we took 
+the unique patterns (to avoid putting more weight into those abstracts with
+more judgments) and perform basic preprocessing to remove stopword and puctuations.
+We then computed a frequency table for terms in the patterns belonging to 
+included and excluded judgments, removing for the sample those assessed by researcher
+as low quality (more on the next section). It is important to mention, however, 
+that we did not consider the gold answer in this assessment, just the overall
+quality of the pattern and reason provided.
+
+
+Looking at the top 5 we can see:
+
+```{r echo=FALSE, message=FALSE,warning=FALSE,results='hide'}
+source("./text-analysis.R")
+
+dpatterns1 <- djv[djv$in_out_radio == "yes" & djv$quality_reason != "bad", ]
+dpatterns1 <- unique(str_replace_all(dpatterns1$reason_pattern, "[[:punct:]]", ""))  
+d_yes <- RenderCloud(dpatterns1)
+
+dpatterns2 <- djv[djv$in_out_radio == "no" & djv$quality_reason != "bad", ]
+dpatterns2 <- unique(str_replace_all(dpatterns2$reason_pattern, "[[:punct:]]", ""))  
+d_no <- RenderCloud(dpatterns2)
+
+rownames(d_yes) <- NULL
+rownames(d_no) <- NULL
+
+dx_yes <- d_yes [! d_yes$word %in% head(d_no$word,5), ]
+dx_no <- d_no[! d_no$word %in% head(d_yes$word,5), ]
+
+rownames(dx_yes) <- NULL
+rownames(dx_no) <- NULL
+
+```
+
+<style>
+.container {
+  display: flex; /* or inline-flex */
+  width: 100%;
+}
+.container div {
+  width : 50%;
+  padding: 5px;
+}
+.container table, .container .row {
+  width:100%;
+}
+.container table td {
+  padding: 2px;
+} 
+
+.container img {
+  width: 100%;
+}
+
+</style>
+
+<div class="container">
+<div>
+```{r echo=FALSE, results='asis'}
+print(xtable::xtable(head(d_yes, 5), caption = "Most popular keywords in patterns marked as included"),
+type = "html", html.table.attributes ="style='border=0;padding=2'")
+```
+</div>
+<div>
+```{r echo=FALSE, results='asis'}
+print(xtable::xtable(head(d_no, 5), caption = "Most popular keywords in patterns marked as excluded"),
+type = "html", html.table.attributes ="style='border=0;padding=2'")
+```
+</div>
+</div>
+
+Below the term frequency and word clouds after removing the top 5 terms.
+
+<div class="container">
+<div>
+```{r echo=FALSE, results='asis'}
+print(xtable::xtable(head(dx_yes, 20), caption = "Most popular keywords in patterns marked as included"),
+type = "html", html.table.attributes ="style='border=0;padding=2'")
+```
+</div>
+<div>
+```{r echo=FALSE, results='asis'}
+print(xtable::xtable(head(dx_no, 20), caption = "Most popular keywords in patterns marked as excluded"),
+type = "html", html.table.attributes ="style='border=0;padding=2'")
+```
+</div>
+</div>
+
+<div class="container">
+<div class="row">
+```{r echo=FALSE, results='asis', warning=FALSE, fig.height=8, fig.width=8}
+par(mfrow=c(1, 2),
+    oma = c(0,0,0,0),
+    mar = c(0,0,0,0))
+
+set.seed(1234)
+wordcloud(
+  words = dx_yes$word,
+  freq = dx_yes$freq,
+  min.freq = 2,
+  max.words = 200,
+  random.order = FALSE,
+  rot.per = 0.35,
+  colors = brewer.pal(8, "Dark2")
+)
+wordcloud(
+  words = dx_no$word,
+  freq = dx_no$freq,
+  min.freq = 2,
+  max.words = 200,
+  random.order = FALSE,
+  rot.per = 0.35,
+  colors = brewer.pal(8, "Dark2")
+)
+par(mfrow=c(1, 1))
+```
+</div>
+</div>
+
+## Reasons
+
+We performed content analysis using an emerging coding system to characterise
+the reasons for including and excluding papers. The resuting categories can be 
+seen in the table below:
+
+| Category                      | Example                                    |
+|-------------------------------|--------------------------------------------|
+| **Summary**  <br> A summary of the paper (in the workers' words) was provided as reason.  |  *"This study approaches the ethnographic meaning of the coexistence of old an new technologies (radio and tv sets) in living rooms of elderly facilities in Kinshasa."*    |
+| **Argument**  <br> Exclitic arguments for the decision are included.  |  *"The main focus in the study is the energy efficiency of the device. There is no social interaction."*    |
+| **Copy & Paste**  <br> A copy of a portion of the abstract (or title) was provided as reason.  |  *"Older adults experiences of online social interactions: A phenomenological study."*    |
+| **Induction**  <br> There is a inference made by the worker, not explicit in the abstract.  |  *"the paper is about social networking sites which usually involves online social interactions."*    |
+| **Rephrase**  <br> Part of the abstract (mostly the pattern) is slightly rephrased as the reason.  |  *"The paper is about 'online' social interactions, especifically about SNS (social network sites) and how they can  improve older people's life satisfaction."*    |
+| **Assertion**  <br> An assertion is made, with little or no supporting arguments.  |  *"the paper is about social online interactions, especificaclly about the health of social connections.."*    |
+| **Generic**  <br> A generic or very general remark is made.  |  *"The paper talks about implementation of AI technology."*    |
+| **Keywords**  <br> Keywords provided as the reason.  |  *"face to face"*, <br>  *"online"*   |
+| **Off / incomplete**  <br> The reason has nothing to do with the filter and topic, or the argument is incomplete.  |  *"there is a study and an evaluation."* <br> *"The paper is not about 'online' social interactions, is about."*   |
+
+In the chart below we can see the results from the classification of the patterns.
+
+```{r message=FALSE, echo=FALSE, fig.height=4}
+p2
+```
+
+
+
+## Quality of contributions
+We also performed a qualitative assessment of the quality of the reasons and contributions 
+provided by considering their content and context. We looked into the type of pattern 
+provided (e.g., the effort put), how reasonable it was in light of the content of the 
+abstract (e.g., did the decisions require much argumentation) and the final assessment 
+(e.g., was the final assessment aligned with the reason and complexity of the abstract). 
+We did not consider the contributor information in the assessment (e.g., all information
+about the worker was hidden to the coder during the qualitative assessment). 
+
+A total of `r length(djv$id)` reasons were coded in an ordinal scale of (bad, medium, good)
+adding a fourth level (excellent) as there were some outstanding contributions that
+deserved a closer look. We show the results divided by "golden" data and those with
+unknown label. 
+
+<div class="container">
+  <div class="row">
+```{r message=FALSE, echo=FALSE, fig.height=4}
+p1 + coord_flip()
+```
+  </div>
+</div>
+
+Analysing quality of contributions by worker, we can see the following:
+
+<div class="container">
+  <div class="row">
+  ```{r message=FALSE, echo=FALSE, fig.height=5}
+  pwork + coord_flip()
+  ```
+  </div>
+</div>
+
+

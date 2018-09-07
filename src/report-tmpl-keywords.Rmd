@@ -1,0 +1,324 @@
+---
+title: "Qualitative analysis of exclusion patterns (keywords)"
+author: "Marcos Baez"
+date: "8/21/2018"
+output: 
+  html_document:
+        toc: true
+        toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Dataset
+
+```{r echo=FALSE, message=FALSE, results='hide'}
+file_include = commandArgs(TRUE)[1]
+source("./screening-keywords.R")
+```
+The analysis is based on the file **`r commandArgs(TRUE)[1]`**.
+
+A total of `r length(dj1$id)` judgments were collected from 
+`r length(unique(dj1$X_worker_id))` workers on  `r length(unique(dj1$X_unit_id))` papers 
+(`r length(unique(dj1$X_unit_id[dj1$X_golden == "TRUE"]))` of which were "golden"
+or labeled items). After removing non valid contributions, we ended up with `r length(djv$id)` valid judgements. 
+
+
+```{r message=FALSE, echo=FALSE, fig.height=4}
+pdist
+```
+
+## Patterns
+A total of `r length(djv$id)` judgements with valid patterns were identified
+from the `r length(dj1$id)` collected. We considered invalid those patterns 
+coming from contributions that did not follow the job instructions. 
+
+```{r echo=FALSE, results='asis'}
+print(xtable::xtable(dji, caption = "Reasons for invalid cases"),
+type = "html", html.table.attributes ="style='border=0;padding=2'")
+```
+
+Below we illustrate the distribution of number of patterns in contributions. 
+The range goes from 0-`r max(djv$nPatterns)`, with a median of `r median(djv$nPatterns)`.
+
+```{r message=FALSE, echo=FALSE, fig.height=4}
+ppat_hist
+```
+
+### Classifying patterns
+
+We then performed a qualitative content analysis on the valid patterns to 
+characterise to what concepts they refer to. The emerging coding scheme is 
+listed below. 
+
+| Category             | Example                                          |
+|----------------------|--------------------------------------------------|
+| Social               | The keywords provided were related to the concept of social interactions <br> e.g., *"Social isolation, social ties, social interaction"*|
+| Technology           | The keywords provided were related to the concept of technology <br> e.g., *"Internet-of-Things, fall detection, energy efficiency, wearable device"*|
+| Social & Technology  | The keywords provided were related to both technology and social interactions <br> e.g., *"benefits of social connections,Internet connectivity,social activity"*|
+| Paper focus          | The keywords provided describe the focus of the paper <br> e.g., *"gaming console, health care and rehabilitation, activity group, social activity"*|
+| Off topic            | The keywords provided do not relate to any of the aforementioned topics. <br> e.g., *"Questionnaire, longitudinal research"*|
+
+
+
+In the chart below we show the count of unique patterns by category.
+
+```{r message=FALSE, echo=FALSE, fig.height=4}
+ppat_type
+```
+
+
+### Content analysis 
+Looking deeper into the content of the patterns, we looked into the most popular 
+keywords in abstracts marked as included and excluded. To this end, we took 
+the unique pairs (paper, pattern) to avoid putting more weight into those abstracts with
+more judgments, and computed a frequency table, removing from the sample those assessed by researcher
+as low quality (more on the next section). The analysis was done separately 
+for the set of papers marked as included and excluded.
+
+Looking at the top 5 we can see the following (notice that the possible values for the keywords go from 1-`r max(unique(djv$X_unit_id))`).
+
+
+```{r echo=FALSE, message=FALSE,warning=FALSE}
+source("./text-analysis.R")
+
+dpatterns1 <- djv[djv$in_out_radio == "yes" & djv$quality_reason != "bad", ]
+dpatterns1 <- SplitKeywords(dpatterns1$X_unit_id, dpatterns1$reason_pattern)
+
+# dpatterns1 <- melt(prop.table(table(dpatterns1$unitid, dpatterns1$pattern),1) * 2)
+# dpatterns1 <- aggregate(ceiling(dpatterns1$value), by=list(Category=dpatterns1$Var2), FUN=sum)
+# dpatterns1$x <- ceiling(dpatterns1$x)
+# d_yes <- dpatterns1
+
+dpatterns1 <- unique(dpatterns1)
+d_yes <- data.frame(table(dpatterns1$pattern))
+
+colnames(d_yes) <- c("word", "freq")
+d_yes <- d_yes[order(d_yes$freq, decreasing = T), ]
+
+
+dpatterns2 <- djv[djv$in_out_radio == "no" & djv$quality_reason != "bad", ]
+dpatterns2 <- SplitKeywords(dpatterns2$X_unit_id, dpatterns2$reason_pattern)
+
+# dpatterns2 <- melt(prop.table(table(dpatterns2$unitid, dpatterns2$pattern),1) * 2)
+# dpatterns2 <- aggregate(ceiling(dpatterns2$value), by=list(Category=dpatterns2$Var2), FUN=sum)
+# dpatterns2$x <- ceiling(dpatterns2$x)
+# d_no <- dpatterns2
+
+dpatterns2 <- unique(dpatterns2)
+d_no <- data.frame(table(dpatterns2$pattern))
+
+colnames(d_no) <- c("word", "freq")
+d_no <- d_no[order(d_no$freq, decreasing = T), ]
+
+rownames(d_yes) <- NULL
+rownames(d_no) <- NULL
+
+```
+
+
+<style>
+.container {
+  display: flex; /* or inline-flex */
+  width: 100%;
+}
+.container div {
+  width : 50%;
+  padding: 5px;
+}
+.container table, .container .row {
+  width:100%;
+}
+.container table td {
+  padding: 2px;
+} 
+
+.container img {
+  width: 100%;
+}
+
+</style>
+
+
+<div class="container">
+<div>
+```{r echo=FALSE, results='asis'}
+print(xtable::xtable(head(d_yes, 20), caption = "Most popular keywords in patterns marked as included"),
+type = "html", html.table.attributes ="style='border=0;padding=2'")
+```
+</div>
+<div>
+```{r echo=FALSE, results='asis'}
+print(xtable::xtable(head(d_no, 20), caption = "Most popular keywords in patterns marked as excluded"),
+type = "html", html.table.attributes ="style='border=0;padding=2'")
+```
+</div>
+</div>
+
+
+
+```{r echo=FALSE, message=FALSE,warning=FALSE}
+
+dpatterns1 <- djv[djv$in_out_radio == "yes" & djv$quality_reason != "bad", ]
+dpatterns1 <- SplitKeywords(dpatterns1$X_unit_id, dpatterns1$reason_pattern)
+dpatterns1 <- unique(dpatterns1)
+
+d_yes <- RenderCloud(dpatterns1$pattern, allowStemming = F)
+colnames(d_yes) <- c("word", "freq")
+d_yes <- d_yes[order(d_yes$freq, decreasing = T), ]
+
+
+dpatterns2 <- djv[djv$in_out_radio == "no" & djv$quality_reason != "bad", ]
+dpatterns2 <- SplitKeywords(dpatterns2$X_unit_id, dpatterns2$reason_pattern)
+dpatterns2 <- unique(dpatterns2)
+
+d_no <- RenderCloud(dpatterns2$pattern, allowStemming = F)
+colnames(d_no) <- c("word", "freq")
+d_no <- d_no[order(d_no$freq, decreasing = T), ]
+
+rownames(d_yes) <- NULL
+rownames(d_no) <- NULL
+
+dx_yes <- d_yes [! d_yes$word %in% head(d_no$word,5), ]
+dx_no <- d_no[! d_no$word %in% head(d_yes$word,5), ]
+
+rownames(dx_yes) <- NULL
+rownames(dx_no) <- NULL
+```
+
+After perform basic preprocessing to remove stopword and puctuations, as well
+as considering every single term in the patterns we end up with the following
+table and figure. 
+
+<div class="container">
+<div>
+```{r echo=FALSE, results='asis'}
+print(xtable::xtable(head(d_yes, 20), caption = "Most popular keywords in patterns marked as included"),
+type = "html", html.table.attributes ="style='border=0;padding=2'")
+```
+</div>
+<div>
+```{r echo=FALSE, results='asis'}
+print(xtable::xtable(head(d_no, 20), caption = "Most popular keywords in patterns marked as excluded"),
+type = "html", html.table.attributes ="style='border=0;padding=2'")
+```
+</div>
+</div>
+
+<div class="container">
+<div class="row">
+```{r echo=FALSE, results='asis', warning=FALSE, fig.height=8, fig.width=8}
+par(mfrow=c(1, 2),
+    oma = c(0,0,0,0) + 0.1,
+    mar = c(0,0,1,1) + 0.1)
+
+set.seed(111)
+wordcloud(
+  words = dx_yes$word,
+  freq = dx_yes$freq,
+  min.freq = 1,
+  max.words = 200,
+  random.order = FALSE,
+  rot.per = 0.35,
+  colors = brewer.pal(8, "Dark2")
+)
+set.seed(111)
+wordcloud(
+  words = dx_no$word,
+  freq = dx_no$freq,
+  min.freq = 1,
+  max.words = 200,
+  random.order = FALSE,
+  rot.per = 0.35,
+  colors = brewer.pal(8, "Dark2")
+)
+par(mfrow=c(1, 1))
+```
+</div>
+</div>
+
+
+## Reasons
+
+We performed content analysis using an emerging coding system to characterise
+the reasons for including and excluding papers. The resuting categories can be 
+seen in the table below:
+
+| Category                      | Example                                    |
+|-------------------------------|--------------------------------------------|
+| **Summary**  <br> A summary of the paper (in the workers' words) was provided as reason.  |  *"This study approaches the ethnographic meaning of the coexistence of old an new technologies (radio and tv sets) in living rooms of elderly facilities in Kinshasa."*    |
+| **Argument**  <br> Exclitic arguments for the decision are included.  |  *"The main focus in the study is the energy efficiency of the device. There is no social interaction."*    |
+| **Copy & Paste**  <br> A copy of a portion of the abstract (or title) was provided as reason.  |  *"Older adults experiences of online social interactions: A phenomenological study."*    |
+| **Induction**  <br> There is a inference made by the worker, not explicit in the abstract.  |  *"the paper is about social networking sites which usually involves online social interactions."*    |
+| **Rephrase**  <br> Part of the abstract (mostly the pattern) is slightly rephrased as the reason.  |  *"The paper is about 'online' social interactions, especifically about SNS (social network sites) and how they can  improve older people's life satisfaction."*    |
+| **Assertion**  <br> An assertion is made, with little or no supporting arguments.  |  *"the paper is about social online interactions, especificaclly about the health of social connections.."*    |
+| **Generic**  <br> A generic or very general remark is made.  |  *"The paper talks about implementation of AI technology."*    |
+| **Keywords**  <br> Keywords provided as the reason.  |  *"face to face"*, <br>  *"online"*   |
+| **Off / incomplete**  <br> The reason has nothing to do with the filter and topic, or the argument is incomplete.  |  *"there is a study and an evaluation."* <br> *"The paper is not about 'online' social interactions, is about."*   |
+
+In the chart below we can see the results from the classification of the patterns.
+
+```{r message=FALSE, echo=FALSE, fig.height=4}
+pres_type
+```
+
+
+
+## Quality of contributions
+We also performed a qualitative assessment of the quality of the reasons and contributions 
+provided by considering their content and context. We looked into the type of pattern 
+provided (e.g., the effort put), how reasonable it was in light of the content of the 
+abstract (e.g., did the decisions require much argumentation) and the final assessment 
+(e.g., was the final assessment aligned with the reason and complexity of the abstract). 
+We did not consider the contributor information in the assessment (e.g., all information
+about the worker was hidden to the coder during the qualitative assessment). 
+
+
+### Reason
+
+A total of `r length(djv$id)` reasons were coded in an ordinal scale of (bad, poor, medium, good)
+adding a fifth level (excellent) as there were some outstanding contributions that
+deserved a closer look. We show the results divided by "golden" data and those with
+unknown label. 
+
+```{r message=FALSE, echo=FALSE, fig.height=4}
+pres_quality + coord_flip()
+```
+
+### Patterns
+
+We also looked at the quality of the patterns provided. A total of `r length(djv$id)` 
+patterns were coded in an ordinal scale of (bad, poor, medium, good). 
+The assessment is based on whether the keywords really support the judgement and 
+reason provided by the worker, i.e., supports why the paper is related or not 
+to social interactions and / or technology.
+
+Below we show the results divided by "golden" data and those with unknown label. 
+
+<div class="container">
+<div class="row">
+```{r message=FALSE, echo=FALSE, fig.height=4}
+ppat_quality + coord_flip()
+```
+</div>
+</div>
+
+Consider task design in assessing the above results. 
+
+
+### Contributors
+
+The quality in this chart is measured by the quality of the 'reasons' provided, 
+which also greatly influenced the quality of the patterns as mentioned before. 
+<div class="container">
+<div class="row">
+```{r message=FALSE, echo=FALSE, fig.height=5}
+pwork + coord_flip()
+```
+</div>
+</div>
+
+
+
