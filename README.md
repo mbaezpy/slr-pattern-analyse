@@ -1,5 +1,5 @@
 # Analysis of SLR patterns
-Basic analysis of SLR patterns in R.
+Basic analysis of SLR patterns in R. Check the R [project website](https://www.r-project.org) for instructions.
 
 ## Intallation
 You need to install R in your environment. 
