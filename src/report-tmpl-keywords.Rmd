@@ -9,14 +9,16 @@ output:
 ---
 
 ```{r setup, include=FALSE}
+pwd = commandArgs(TRUE)[2]
 knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = pwd)
 ```
 
 ## Dataset
 
 ```{r echo=FALSE, message=FALSE, results='hide'}
 file_include = commandArgs(TRUE)[1]
-source("./screening-keywords.R")
+source("src/screening-keywords.R")
 ```
 The analysis is based on the file **`r commandArgs(TRUE)[1]`**.
 
@@ -82,7 +84,7 @@ Looking at the top 5 we can see the following (notice that the possible values f
 
 
 ```{r echo=FALSE, message=FALSE,warning=FALSE}
-source("./text-analysis.R")
+source("src/text-analysis.R")
 
 dpatterns1 <- djv[djv$in_out_radio == "yes" & djv$quality_reason != "bad", ]
 dpatterns1 <- SplitKeywords(dpatterns1$X_unit_id, dpatterns1$reason_pattern)

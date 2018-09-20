@@ -12,10 +12,12 @@ fi
 
 mkdir -p output
 
+CURR_DIR=`pwd`
+
 if [ $PAT_TYPE = "sentences" ]; then
-  Rscript -e "library(rmarkdown); rmarkdown::render(\"./src/report-tmpl-sentence.Rmd\", \"html_document\", output_dir = \"./output/\", output_file =\"${PAT_TYPE}_$NOW.html\")" $CSV_FILE
+  Rscript -e "library(rmarkdown); getwd(); rmarkdown::render(\"./src/report-tmpl-sentence.Rmd\", \"html_document\", output_dir = \"./output/\", output_file =\"${PAT_TYPE}_$NOW.html\")" $CSV_FILE $CURR_DIR
 elif [ $PAT_TYPE = "keywords" ]; then  
-  Rscript -e "library(rmarkdown); rmarkdown::render(\"./src/report-tmpl-keywords.Rmd\", \"html_document\", output_dir = \"./output/\", output_file =\"${PAT_TYPE}_$NOW.html\")" $CSV_FILE
+  Rscript -e "library(rmarkdown); setwd(\".\"); rmarkdown::render(\"./src/report-tmpl-keywords.Rmd\", \"html_document\", output_dir = \"./output/\", output_file =\"${PAT_TYPE}_$NOW.html\")" $CSV_FILE $CURR_DIR
 else
     echo "Invalid type of pattern."
     echo "TYPE_PATTERN: keywords | sentences"

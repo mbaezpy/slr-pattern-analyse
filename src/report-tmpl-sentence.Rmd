@@ -9,7 +9,9 @@ output:
 ---
 
 ```{r setup, include=FALSE}
+pwd = commandArgs(TRUE)[2]
 knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = pwd)
 ```
 
 
@@ -18,7 +20,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r echo=FALSE, message=FALSE, results='hide'}
 file_include = commandArgs(TRUE)[1]
-source("./screening-sentence.R")
+source("src/screening-sentence.R")
 ```
 
 The analysis is based on the file **`r commandArgs(TRUE)[1]`**.
@@ -95,7 +97,7 @@ quality of the pattern and reason provided.
 Looking at the top 5 we can see:
 
 ```{r echo=FALSE, message=FALSE,warning=FALSE,results='hide'}
-source("./text-analysis.R")
+source("src/text-analysis.R")
 
 dpatterns1 <- djv[djv$in_out_radio == "yes" & djv$quality_reason != "bad", ]
 dpatterns1 <- unique(str_replace_all(dpatterns1$reason_pattern, "[[:punct:]]", ""))  
