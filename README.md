@@ -34,7 +34,7 @@ type_reason
 ```
 Depending on the pattern extraction strategy, `reason_pattern` might be 
 
-a) plain text or:
+a) plain text, or:
 
 ```
 This study provides insight into long-term health outcomes and cost-effectiveness of a tailored PA intervention among adults aged over fifty
@@ -53,7 +53,7 @@ $ split-patterns.sh <INPUT_CSV_FILE> <OUTPUT_CSV_FILE>
 ```
 
 ## Running the scripts
-You can analys *keyword* patterns and *sentences*. Syntax:
+You can analyse *keyword* patterns and *sentences*. Syntax:
 
 ```
 USAGE: gen-report.sh <FULL_PATH_TO_CSV> <TYPE_PATTERN>
@@ -64,11 +64,10 @@ Examples:
 
 ```shell
 # Analysing keyword patterns
-$ ./gen-report.sh path/to/keyword-patterns.csv keywords
+$ ./gen-report.sh keyword-patterns.csv keywords
 
 # Analysing sentence patterns
-$ ./gen-report.sh path/to/keyword-patterns.csv sentences
+$ ./gen-report.sh keyword-patterns.csv sentences
 ```
 
-**Notice** that the above script expect the full path to the files.
 
