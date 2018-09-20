@@ -1,16 +1,7 @@
-# Install
-#install.packages("tm")  # for text mining
-#install.packages("SnowballC") # for text stemming
-#install.packages("wordcloud") # word-cloud generator 
-#install.packages("RColorBrewer") # color palettes
-#install.packages("qdap")
-# Load
 library("tm")
 library("SnowballC")
 library("wordcloud")
 library("RColorBrewer")
-#library("qdap")
-
 
 RenderCloud <- function(dpatterns, allowCompoundWords = F, allowStemming = F) {
   #dpatterns <-
@@ -69,23 +60,6 @@ SplitKeywords <- function(ids, keywords) {
   df  
   
 }
-
-# d_yes <- RenderCloud(djv[djv$in_out_radio == "yes" & djv$quality_reason != "bad", ])
-# d_no <- RenderCloud(djv[djv$in_out_radio == "no" & djv$quality_reason != "bad", ])
-# 
-# rownames(d_yes) <- NULL
-# rownames(d_no) <- NULL
-# 
-# head(d_yes, 20)
-# head(d_no, 20)
-# 
-# dx_yes <- d_yes [! d_yes$word %in% head(d_no$word,5), ]
-# dx_no <- d_no[! d_no$word %in% head(d_yes$word,5), ]
-# 
-# rownames(dx_yes) <- NULL
-# rownames(dx_no) <- NULL
-
-
 
 
 
